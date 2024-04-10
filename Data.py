@@ -1,5 +1,6 @@
 from collections import defaultdict
 from datasets import load_dataset
+import pandas as pd
 
 class SUCXProcessor:
     def __init__(self, data, mode, split):
@@ -44,33 +45,62 @@ class SUCXProcessor:
         return ner_pair
 
 
+from collections import defaultdict
 
-import pandas as pd
+class NewseyeProcessor:
+    def __init__(self, file_path):
+        self.file_path = file_path
+        self.ner_set = []
 
-# 路径到你的TSV文件
-file_path = '/Volumes/KeShu/Master_Thesis/Data/NewsEye/NewsEye-German/dev.tsv'
+    def read_file(self):
+        columns = []
+        with open(self.file_path, 'r', encoding='utf-8') as file:
+            for line in file:
+                columns.append(line.strip().split('\t'))
+        return columns
 
-# 使用with语句打开文件，确保文件会被正确关闭
+    def process_columns(self, columns):
+        texts = []
+        tags = []
+        ner_pairs = defaultdict(list)
+
+        for column in columns[4:]:
+            if len(column) != 1:
+                texts.append(column[0])
+                tags.append(column[1])
+            else:
+                for j, tag in enumerate(tags):
+                    if tag != 'O':
+                        tag = tag.split('-')[1]
+                        ner_pairs[tag].append(j)
+                texts = ' '.join(texts)
+                self.ner_set.append((texts, ner_pairs))
+                texts = []
+                tags = []
+                ner_pairs = defaultdict(list)
+
+    def run(self):
+        columns = self.read_file()
+        self.process_columns(columns)
+
+    def get_ner_set(self):
+        return self.ner_set
+
+
+'''file_path = '/Volumes/KeShu/Master_Thesis/Data/NewsEye/NewsEye-German/dev.tsv'
+
+
 columns = []
 with open(file_path, 'r', encoding='utf-8') as file:
     for line in file:
-        # 去除每行末尾的换行符并分割行来获取各列的值
         columns.append(line.strip().split('\t'))
-        # 这里你可以处理每一列，比如打印出来
-    #print(columns)
-
-        #tags.append = column[1].split('-')
-
-ner_pairs = defaultdict(list)
-ner_set = []
-
-for co in columns:
-    if len(co) == 1:
-        print(co)
 
 
 texts = []
 tags = []
+
+ner_pairs = defaultdict(list)
+ner_set = []
 
 for column in columns[4:]:
     if len(column) != 1:
@@ -85,6 +115,6 @@ for column in columns[4:]:
         ner_set.append((texts, ner_pairs))
         texts = []
         tags = []
-        ner_pairs = defaultdict(list)
+        ner_pairs = defaultdict(list)'''
 
-print(ner_set[10])
+
